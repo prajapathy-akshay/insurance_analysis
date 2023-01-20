@@ -1,0 +1,158 @@
+---
+title: "Group_Assignment"
+author: "MARTY Aguirre, ANIL KUMAR PRAJAPATHY Akshay & CHANG Chi Yuan"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Dataset Used :- Insurance dataset from kaggle
+
+#The "insurance" dataset is a valuable resource for understanding the various features and characteristics of health insurance company members, as well as the rates they currently pay. As an insurance company, determining the appropriate pricing strategy for different types of customers is a crucial aspect of earning a profit. The goal of this research project is to use the "insurance" dataset to investigate which habits and performance metrics of insurance company members have a significant impact on their rates. This information can assist insurance companies in developing a pricing strategy that is both fair to customers and financially viable for the company. The findings of this research will provide valuable insights for insurance companies looking to improve their pricing strategies and ultimately increase their profitability.
+
+```{r}
+library(Hmisc)
+library(ggplot2)
+library(ggthemes)
+library(tidyverse)
+library(dataMaid)
+library(PerformanceAnalytics)
+library(readr)
+```
+#Reading the data
+```{r warning=FALSE, message=FALSE}
+insurance <- read_csv("G:/Programming with Business Analytics/insurance.csv")
+#verifying whether the data uploaded properly
+print(head(insurance, 10)) 
+```
+#Description of the data
+```{r}
+#a small brief statiscal summary of the dataset " insurance "
+summary(insurance)
+```
+#Description of the data using the datamaid package
+```{r warning=FALSE, message=FALSE}
+#using datamaid to describe the data
+makeDataReport(insurance, replace=TRUE, openResult = FALSE, render = TRUE,output= "html", codebook = TRUE, file="Insurance_Report.html")
+```
+##Observations made from the data
+
+#The "insurance" dataset contains 7 variables and 1338 observations. There are no missing values in the dataset. The following are the observations made from the dataset:
+
+#Age: The age of the insurance contractor ranges from 18 to 64 years old, with an average age of 39. This is a continuous variable.
+
+#Sex: The dataset includes both female and male contractors, with the proportion of each being relatively evenly distributed. This is a categorical variable.
+
+#BMI: Body mass index (BMI) is a value calculated from a person's mass (weight) and height. The range of BMI in the dataset is from 15.96 to 53.13, with an average of 30.66. This is a continuous variable.
+
+#Children: The number of children that the insurance contractor has ranges from 0 to 5. The majority of contractors have no more than 2 children. This is a continuous variable.
+
+#Smoker: The dataset includes information on whether the insurance contractor is a smoker or not, with non-smokers being four times as likely as smokers. This is a categorical variable.
+
+#Region: The dataset includes information on the insurance contractor's living area in the US, with four regions represented: northeast, southeast, southwest, and northwest. The proportions of contractors in each region are relatively evenly distributed. This is a categorical variable.
+
+#Charges: The expenses to be paid by the insurance contractor as set by the insurance company ranges from 1121 to 63770, with an average of 13270. This is a continuous variable and is the predict value.
+
+##EDA with visualization
+```{r}
+#scatterplot diagram to visualize the relationship b/w ages and charges
+age_charges <- ggplot(insurance, aes(age, charges)) +
+  geom_jitter(color = "orange", alpha = 0.5) + theme_clean() + ggtitle("Charges by Age")
+age_charges
+```
+
+##Inference from Charges by Age chart:
+
+#The dataset shows a strong positive correlation between age and charges, with the charges increasing as age increases. Upon further analysis, it was observed that there are three distinct linear positive correlation lines in the plot, with the majority of data points falling on the bottom line. This suggests that as age increases, there is a consistent increase in charges. It should be noted that this correlation may be influenced by other factors and further analysis is needed to understand the relationship between age and charges
+```{r}
+#scatterplot diagram to visualize the relationship b/w bmi and charges
+BMI_charges <- ggplot(insurance, aes(bmi, charges)) +
+  geom_jitter(color = "blue", alpha = 0.5) + theme_clean() + ggtitle("Charges by BMI") 
+BMI_charges
+#correlation b/w bmi and charges
+cor(insurance$bmi,insurance$charges)
+```
+##Inference from Charges by BMI chart:
+
+
+#Upon analyzing the dataset, it was observed that there is no clear relationship between the charges and BMI variables. However, upon further examination using the cor() function, a small positive correlation (0.198341) was found between the two variables. This suggests that while there may not be a strong relationship between charges and BMI, there may be some correlation between the two. Additionally, this small correlation could also be influenced by other factors that have not been considered in this analysis.
+```{r}
+#scatterplot diagram to visualize the relationship b/w children and charges
+children_charges <- ggplot(insurance, aes(children, charges)) +
+  geom_jitter(aes(color = children), alpha = 0.5) + theme_clean() + ggtitle("Charges by Children") 
+children_charges
+#correlation b/w children and charges
+cor(insurance$charges,insurance$children)
+#table showing the value_count of number of children
+table(insurance$children)
+```
+##Inference from Charges by Children chart
+
+
+#The correlation coefficient between the charges and children variables in the dataset is 0.06799823. This indicates a very weak positive linear relationship between the two variables. The coefficient value of 0.06799823 suggest that the relationship is not very strong, meaning that the number of children has only a slight effect on the charges. The coefficient being positive indicates that as the number of children increases, the charges also tend to increase. However, from the graph we have no proof of this, even when the number of children increases the charges are not affected, hence this slight positive linear relationship is neglible.
+```{r}
+#boxplot diagram to visualize the relationship b/w gender and charges
+gender_charges <- ggplot(insurance,aes(sex,charges)) + geom_boxplot(fill = c("red", "blue")) +
+  theme_clean() + ggtitle("Charges by Gender")
+gender_charges
+#table showing the value_count of Female and male
+table(insurance$sex)
+```
+##Inference from Charges by Gender chart
+
+
+#The box plot analysis of the dataset revealed that there is little association between gender and charges.The median values for both variables are similar and this suggests that there is a weak relationship between the two variables.  
+```{r}
+#boxplot diagram to visualize the relationship b/w smokers and charges
+smoker_charges <- ggplot(insurance,aes(smoker,charges)) + geom_boxplot(fill = c("green", "red")) +
+  theme_clean() + ggtitle("Charges by Smoke Status")
+smoker_charges
+#table showing the value_count of people who smoke and dont smoke
+table(insurance$smoker)
+```
+##Inference from Charges by Smokers chart
+
+
+#The box plot analysis of the "insurance" dataset reveals that there is a strong positive relationship between the variables "smokers" and "charges." The box plot shows that the median for smokers is significantly higher compared to the median of non-smokers. This indicates that individuals who smoke tend to have higher charges as compared to non-smokers.
+```{r}
+#boxplot diagram to visualize the relationship b/w region and charges
+region_charges <- ggplot(insurance,aes(region,charges)) + geom_boxplot(fill = c(5:8)) +
+  theme_clean() + ggtitle("Charges per Region")
+region_charges
+#table showing the value_count accroding to regions
+table(insurance$region)
+```
+##Inference from Charges by Smokers
+
+
+#Based on the side-by-side box plot analysis, it does not show a clear positive correlation between the variables "region" and "charges" in the "insurance" dataset. The box plots show that the median charges are similar across all regions, indicating that there is little difference in the central tendency of the charges for different regions. The interquartile range (IQR) for the charges also varies between regions, this suggests that there is a difference in the distribution of charges among different regions, but it does not indicate a positive correlation.
+```{r}
+library(psych)
+#pairplot diagram to visualize the relationship b/w all the variables.
+pairs.panels(insurance[c("age","sex","bmi", "children","smoker","charges")])
+```
+##Inference from Correlation chart
+
+
+#Smoking and Age are the varibles that have positive correlation with charges.All the others have negligle to negative relations.
+
+##Final Observations(Conclusion):
+
+
+#After conducting an analysis of the "insurance" dataset, it has been determined that the variables "smoking" and "age" have a strong positive correlation with the variable "charges." This suggests that individuals who smoke and are older tend to have higher charges as compared to non-smokers and younger individuals. This relationship is further reinforced by other measures such as correlation coefficient and charts which shows a strong correlation between these variables.
+
+##Works Assigned
+
+#Team members(3): MARTY Aguirre, ANIL KUMAR PRAJAPATHY Akshay & CHANG Chi Yuan
+
+
+#All the works were done together online via google meet. 
+#First we tried working together using postit, R's online workstation. However, it was creating confusion among us, hence decided go with working on the desktop version and communicating through Gmeet. 
+
+##References:
+
+#dataset : https://www.kaggle.com/code/nazeernazeer/statistical-analysis-of-insurance-dataset/data
+#charts : https://ggplot2.tidyverse.org/reference/ggplot.html , Codecademy
